@@ -23,7 +23,7 @@ concept:
 
 	creates a mapping in which you can intercept everything written to /var/log (or some other directory you specify). None of the writes will persist to disk. Instead, they will quickly pass to an upstream daemon which does whatever you want: forwarding, queueing, parsing, etc. Just get the messages out of logfs pretty, fire & forget.
 
-	if the unix socket connection dies, it'll keep trying to connect every '1s'.
+	if the unix socket connection dies, it'll keep trying to connect every '1s'. If data is sent when the unix socket is disconnected, that data will be lost. The upstream code should handle those exceptions & remain "always online" for receiving data on the unix socket.
 
 TODO:
 ----'
