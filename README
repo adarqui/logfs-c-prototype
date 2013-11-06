@@ -1,4 +1,4 @@
-built to capture everything written to /var/log. Needs an 'upstream' unix socket which t writes to. It writes the path & data as base64 encoded strings, in json format.
+built to capture everything written to /var/log. Needs an 'upstream' unix socket which it writes to. It writes the path & data as base64 encoded strings, in json format.
 
 example usage:
 -------------'
@@ -23,6 +23,7 @@ concept:
 
 	creates a mapping in which you can intercept everything written to /var/log (or some other directory you specify). None of the writes will persist to disk. Instead, they will quickly pass to an upstream daemon which does whatever you want: forwarding, queueing, parsing, etc. Just get the messages out of logfs pretty, fire & forget.
 
+	if the unix socket connection dies, it'll keep trying to connect every '1s'.
 
 TODO:
 ----'
