@@ -93,7 +93,7 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 	char * base64Data = NULL, * base64Path = NULL;
 	ssize_t n = -1;
 
-	XDEBUG("logfs_write: %s %p[%s] %jd %jd\n", path, buf, buf, size, offset);
+	XDEBUG("logfs_write: %s %p[%.*s] %jd %jd\n", path, buf, (int)size, buf, size, offset);
 
 	if(unfd < 0) return size;
 
@@ -101,7 +101,7 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 	Curl_base64_encode(path, strlen(path), &base64Path);
 
 	if(base64Data && base64Path) {
-		n = dprintf(unfd, "{ \"mod\" : \"logfs\", \"path\" : \"%s\", \"message\" : \"%s\"\n", base64Path, base64Data);
+		n = dprintf(unfd, "{ \"mod\" : \"logfs\", \"path\" : \"%s\", \"message\" : \"%s\" }\n", base64Path, base64Data);
 	}
 
 	if(base64Data) free(base64Data);

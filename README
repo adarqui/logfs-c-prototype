@@ -1,0 +1,30 @@
+built to capture everything written to /var/log. Needs an 'upstream' unix socket which t writes to. It writes the path & data as base64 encoded strings, in json format.
+
+example usage:
+-------------'
+
+	nc -lU </path/to/unix/sock>
+	UPSTREAM=</path/to/unix/sock> ./logfs -o nonempty -o allow_other /var/log
+	pkill -HUP -f syslog
+
+
+environment variables:
+---------------------'
+
+UPSTREAM=
+
+	specifies the 'upstream unix domain socket' which the json messages are sent too
+
+	by default, logfs will try and connect to: /var/run/mpassd.sock
+
+
+concept:
+-------'
+
+	creates a mapping in which you can intercept everything written to /var/log (or some other directory you specify). None of the writes will persist to disk. Instead, they will quickly pass to an upstream daemon which does whatever you want: forwarding, queueing, parsing, etc. Just get the messages out of logfs pretty, fire & forget.
+
+
+TODO:
+----'
+
+	possibly get rid of the base64 encoding in favor of something else.
