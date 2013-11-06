@@ -19,7 +19,6 @@ static int logfs_getattr(const char *path, struct stat *stbuf)
 	stbuf->st_nlink = 1;
 	stbuf->st_uid = getuid();
 	stbuf->st_gid = getgid();
-//	stbuf->st_size = (1ULL << 32); /* 4G */
 	stbuf->st_size = 0;
 	stbuf->st_blocks = 0;
 	stbuf->st_atime = stbuf->st_mtime = stbuf->st_ctime = time(NULL);
@@ -69,7 +68,6 @@ static int logfs_open(const char *path, struct fuse_file_info *fi)
 
 	XDEBUG("logfs_open: %s\n", path);
 
-	fi->fh = 5;
 	return 0;
 }
 
@@ -80,10 +78,7 @@ static int logfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	XDEBUG("logfs_read: %s %p %jd %jd\n", path, buf, size, offset);
 
-	if (offset >= (1ULL << 32))
-		return 0;
-
-	return size;
+	return 0;
 }
 
 
