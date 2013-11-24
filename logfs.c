@@ -101,6 +101,11 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 	return size;
 }
 
+void *logfs_init(struct fuse_conn_info *fi) {
+	init_zmq();
+	return NULL;
+}
+
 
 static struct fuse_operations logfs_oper = {
 	.getattr	= logfs_getattr,
@@ -109,7 +114,8 @@ static struct fuse_operations logfs_oper = {
 	.open		= logfs_open,
 	.create 	= logfs_create,
 	.read		= logfs_read,
-	.write		= logfs_write
+	.write		= logfs_write,
+	.init 		= logfs_init,
 };
 
 
@@ -172,9 +178,6 @@ int main(int argc, char *argv[])
 #if defined(DEBUG)
 	init_debug_fp();
 #endif
-
-	init_signal_handlers();
-	init_zmq();
 
 	return fuse_main(argc, argv, &logfs_oper, NULL);
 }

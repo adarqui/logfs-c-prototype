@@ -55,6 +55,7 @@ static int logfs_create(const char *, mode_t, struct fuse_file_info *);
 static int logfs_open(const char *, struct fuse_file_info *);
 static int logfs_read(const char *, char *, size_t, off_t, struct fuse_file_info *);
 static int logfs_write(const char *, const char *, size_t, off_t, struct fuse_file_info *);
+void * logfs_init(struct fuse_conn_info *);
 
 int clear_socket(void);
 void init_env(void);
