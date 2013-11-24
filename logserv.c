@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
 	if(access(info.logdir, W_OK) < 0)
 		usage("Directory doesn't exist.");
 
-//	daemon(0,0);
+	daemon(0,0);
 
 	umask(0);
 	chdir(info.logdir);
