@@ -3,6 +3,7 @@ FLAGS=  # -DDEBUG
 all:
 	gcc -Wall -O3 logfs.c base64.c -lzmq -lpthread $(FLAG) `pkg-config fuse --cflags --libs` -o logfs
 	gcc logserv.c -lzmq -o logserv
+	gcc logit.c -lzmq -o logit
 	gcc test-logserv.c -lzmq -o test-logserv
 
 clean:

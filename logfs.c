@@ -88,7 +88,7 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 
 	XDEBUG("logfs_write: %s %p[%.*s] %jd %jd\n", path, buf, (int)size, buf, size, offset);
 
-	n = asprintf(&msg, "%s:%s:%.*s", info.pfx, path, size, buf);
+	n = asprintf(&msg, "%lu:%s:%s:%.*s", info.seq, info.pfx, path, size, buf);
 
 	n = zmq_send(info.pub, msg, n, 0);
 	if(n < 0) {
@@ -97,6 +97,8 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 
 	if(msg)
 		free(msg);
+
+	info.seq++;
 
 	return size;
 }

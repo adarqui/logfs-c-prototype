@@ -38,6 +38,7 @@ typedef struct INFO {
 	void * pub;
 	char * con;
 	char * pfx;
+	unsigned long seq;
 } info_t;
 
 info_t info;
