@@ -21,12 +21,27 @@ building:
 make
 
 
+running "in production":
+-----------------------'
+
+UPSTREAM=tcp://localhost:1010 ./logfs -o allow_other -o nonempty -o auto_unmount -o intr /tmp/logfs
+
+
 environment variables:
 ---------------------'
 
 UPSTREAM=
 
 	specifies the 'upstream zmq connection' which logs are sent to
+
+	example: UPSTREAM="tcp://IP_OF_LOGSERV:1010"
+
+PREFIX=
+
+	specifies the prefix to use for each log message. This can be a host identifier etc.
+
+	example: PREFIX="local-web"
+
 
 
 concept:
