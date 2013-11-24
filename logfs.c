@@ -120,7 +120,7 @@ static struct fuse_operations logfs_oper = {
 
 
 int init_zmq(void) {
-	int n;
+	int n, rcvhwm = 30000;
 
 	info.ctx = zmq_ctx_new();
 	info.pub = zmq_socket(info.ctx, ZMQ_PUB);
@@ -131,6 +131,8 @@ int init_zmq(void) {
 		exit(-1);
 	}
 	XDEBUG("init_zmq: %i %s\n", n, info.con);
+
+	zmq_setsockopt(info.pub, ZMQ_RCVHWM, &rcvhwm, sizeof(rcvhwm));	
 
 	return 0;
 }
