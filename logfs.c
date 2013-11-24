@@ -39,7 +39,6 @@ static int logfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
-	filler(buf, "hi", NULL, 0);
 
 	return 0;
 }
@@ -84,28 +83,20 @@ static int logfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 static int logfs_write(const char *path, const char *buf, size_t size,
 	off_t offset, struct fuse_file_info *fi) {
-
-	char * base64Data = NULL, * base64Path = NULL;
-	ssize_t n = -1;
+	int n;
+	char * msg = NULL;
 
 	XDEBUG("logfs_write: %s %p[%.*s] %jd %jd\n", path, buf, (int)size, buf, size, offset);
 
-	if(unfd < 0) return size;
+	n = asprintf(&msg, "%s:%s:%.*s", info.pfx, path, size, buf);
 
-	Curl_base64_encode(buf, size, &base64Data);
-	Curl_base64_encode(path, strlen(path), &base64Path);
-
-	if(base64Data && base64Path) {
-		n = dprintf(unfd, "{ \"mod\" : \"logfs\", \"path\" : \"%s\", \"message\" : \"%s\" }\n", base64Path, base64Data);
-	}
-
-	if(base64Data) free(base64Data);
-	if(base64Path) free(base64Path);
-
+	n = zmq_send(info.pub, msg, n, 0);
 	if(n < 0) {
-		init_socket(0);
-		return -1;
+		XDEBUG("logfs_write: %s %i\n", strerror(errno), n);
 	}
+
+	if(msg)
+		free(msg);
 
 	return size;
 }
@@ -122,68 +113,60 @@ static struct fuse_operations logfs_oper = {
 };
 
 
-int clear_socket(void) {
-	if(unfd >= 0) {
-		close(unfd);
-		unfd = -1;
+int init_zmq(void) {
+	int n;
+
+	info.ctx = zmq_ctx_new();
+	info.pub = zmq_socket(info.ctx, ZMQ_PUB);
+
+	n = zmq_connect(info.pub, info.con);
+	if(n<0) {
+		XDEBUG("init_zmq: %s\n", strerror(errno));
+		exit(-1);
 	}
+	XDEBUG("init_zmq: %i %s\n", n, info.con);
 
-	alarm(1);
-
-	return -1;
+	return 0;
 }
 
-void init_socket(int num) {
-	struct sockaddr_un sun;
-	int r;
-
-	XDEBUG("init_socket: entered\n");
-
-	if(unfd >= 0) {
-		close(unfd);
-		unfd = -1;
-	}
-
-	memset(&sun,0,sizeof(sun));
-	unfd = socket(AF_UNIX,SOCK_STREAM,0);
-	if(unfd < 0) {
-		clear_socket();
-		return;
-	}
-
-	alarm(0);
-
-	sun.sun_family = AF_UNIX;
-	strncpy(sun.sun_path, upstream_path, sizeof(sun.sun_path)-1);
-
-	r = connect(unfd, (struct sockaddr *)&sun, sizeof(sun));
-	if(r < 0) {
-		clear_socket();
-		return;
-	}
-
+void fini(void) {
+	if(info.pub)
+		zmq_close(info.pub);
+	if(info.ctx);
+		zmq_ctx_destroy(info.ctx);
 	return;
 }
 
 void init_signal_handlers(void) {
-	signal(SIGALRM, init_socket);
 }
 
 void init_debug_fp(void) {
+#if defined(DEBUG)
 	debug_fp = fopen("/tmp/logfs.log", "a+");
 	if(!debug_fp) exit(-1);
+#endif
 }
 
 void init_env(void) {
 	if(getenv("UPSTREAM")) {
-		upstream_path = getenv("UPSTREAM");
+		info.con = getenv("UPSTREAM");
+	} else {
+		XDEBUG("init_env: Specify UPSTREAM\n");
+		exit(-1);
 	}
+
+	if(getenv("PREFIX")) {
+		info.pfx = getenv("PREFIX");
+		asprintf(&info.pfx, "log %s", info.pfx);
+	} else {
+		info.pfx = "log null";
+	}
+
 	return;
 }
 
 int main(int argc, char *argv[])
 {
-
 	init_env();
 
 #if defined(DEBUG)
@@ -191,7 +174,7 @@ int main(int argc, char *argv[])
 #endif
 
 	init_signal_handlers();
-	init_socket(0);
+	init_zmq();
 
 	return fuse_main(argc, argv, &logfs_oper, NULL);
 }

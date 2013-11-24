@@ -20,14 +20,28 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <zmq.h>
+#
 #include "base64.h"
 
 /*
  * Some dirty globals
  */
-int unfd = -1;
-char * upstream_path = "/var/run/mpassd.sock";
+#if defined(DEBUG)
 FILE * debug_fp;
+#endif
+
+extern int errno;
+
+typedef struct INFO {
+	void * ctx;
+	void * pub;
+	char * con;
+	char * pfx;
+} info_t;
+
+info_t info;
+
 #if defined(DEBUG)
 #define XDEBUG(msg,...) fprintf(debug_fp,msg,##__VA_ARGS__); fflush(debug_fp)
 #else
@@ -47,6 +61,7 @@ void init_env(void);
 void init_debug_fp(void);
 void init_signal_handlers(void);
 void init_socket(int);
+int init_zmq(void);
 
 int main(int, char **);
 

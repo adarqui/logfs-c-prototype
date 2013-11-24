@@ -1,3 +1,6 @@
 *.swp
 src
 logfs
+a.out
+logserv
+test-logserv
