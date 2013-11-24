@@ -8,6 +8,9 @@ all:
 clean:
 	rm -f logfs
 
+production:
+	UPSTREAM=tcp://localhost:1010 ./logfs -o allow_other -o nonempty -o auto_unmount -o intr /var/log
+
 mount:
 	mkdir -p /tmp/logfs 2>/dev/null
 #	UPSTREAM="tcp://127.0.0.1:1010" ./logfs -o allow_other /tmp/logfs

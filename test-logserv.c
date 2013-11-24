@@ -9,7 +9,7 @@ int main (int argc, char *argv[])
 {
 	void *ctx = zmq_ctx_new ();
 	void *pub = zmq_socket (ctx, ZMQ_PUB);
-	int rc, n, i = 0, sleepval = 500;
+	int rc, n, i = 0, imax = -1, sleepval = 500;
 	
 	rc = zmq_connect (pub, "tcp://localhost:1010"), n, i;
 
@@ -19,9 +19,13 @@ int main (int argc, char *argv[])
 		sleepval = atoi(argv[1]);
 	}
 
+	if(argc > 2) {
+		imax = atoi(argv[2]);
+	}
+
 	if(sleepval == 0) sleepval = 500;
 
-	while (1) {
+	while (i < imax) {
 		char buf [20];
 		snprintf(buf, sizeof(buf)-1, "log %i %i", getpid(), i);
 		n = zmq_send(pub, buf, strlen(buf), 0);
