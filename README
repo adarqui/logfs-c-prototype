@@ -1,11 +1,24 @@
-built to capture everything written to /var/log. Needs an 'upstream' unix socket which it writes to. It writes the path & data as base64 encoded strings, in json format.
+built to capture everything send to 'logserv' via zmq. Needs an 'upstream' zmq connections which it writes to.
 
 example usage:
 -------------'
 
-	nc -lU </path/to/unix/sock>
-	UPSTREAM=</path/to/unix/sock> ./logfs -o nonempty -o allow_other /var/log
+	mkdir -p /tmp/logs
+	./logserv /tmp/logs/
+	UPSTREAM="tcp://127.0.0.1:1010" PREFIX="localhost" ./logfs -o intr -o nonempty -o allow_other /var/log
 	pkill -HUP -f syslog
+
+
+testing logserv:
+---------------'
+
+./test-logserv
+
+
+building:
+--------'
+
+make
 
 
 environment variables:
@@ -13,19 +26,10 @@ environment variables:
 
 UPSTREAM=
 
-	specifies the 'upstream unix domain socket' which the json messages are sent too
-
-	by default, logfs will try and connect to: /var/run/mpassd.sock
+	specifies the 'upstream zmq connection' which logs are sent to
 
 
 concept:
 -------'
 
-	creates a mapping in which you can intercept everything written to /var/log (or some other directory you specify). None of the writes will persist to disk. Instead, they will quickly pass to an upstream daemon which does whatever you want: forwarding, queueing, parsing, etc. Just get the messages out of logfs pretty, fire & forget.
-
-	if the unix socket connection dies, it'll keep trying to connect every '1s'. If data is sent when the unix socket is disconnected, that data will be lost. The upstream code should handle those exceptions & remain "always online" for receiving data on the unix socket.
-
-TODO:
-----'
-
-	possibly get rid of the base64 encoding in favor of something else.
+	creates a mapping in which you can intercept everything written to /var/log (or some other directory you specify). None of the writes will persist to disk. Instead, they will quickly pass to an upstream zmq connection. If 'logserv' goes down, 1000 messages will be queued up. After 1000 are reached, messages are dropped. Once the zmq connection is re-established, all queue'd messages will be sent to logserv.
